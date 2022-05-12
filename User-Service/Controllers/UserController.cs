@@ -20,7 +20,7 @@ namespace User_Service.Controllers
         }
 
         [HttpGet("get/{id}")]
-        public  User Get(int id)
+        public  User Get(long id)
         {
             return _context.Users.Find(id);
         }
@@ -43,8 +43,7 @@ namespace User_Service.Controllers
 
         private void BroadcastUpdate(List<User> updatedUsers)
         {
-            NatsMessage message = NatsMessage.Create("UserUpdate", JsonConvert.SerializeObject(updatedUsers));
-            _messageService.Publish(message.target, message);
+            _messageService.Publish("UserUpdate", updatedUsers);
         }
     }
 }
