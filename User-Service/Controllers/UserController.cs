@@ -19,10 +19,24 @@ namespace User_Service.Controllers
             _context = context;
         }
 
-        [HttpGet("get/{id}")]
-        public  User Get(long id)
+        [HttpGet("getAll")]
+        public IActionResult getAll()
         {
-            return _context.Users.Find(id);
+            IEnumerable<User> users = _context.Users;
+            return Ok(users);
+        }
+
+        [HttpGet("get/{id}")]
+        public  IActionResult Get(long id)
+        {
+            User user = _context.Users.FirstOrDefault(x=> x.Id == id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user);
         }
 
         [HttpPost("create")]
@@ -30,7 +44,7 @@ namespace User_Service.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(user);
+                _context.Users.Add(user);
                 _context.SaveChanges();
 
                 BroadcastUpdate(new List<User> { user });
