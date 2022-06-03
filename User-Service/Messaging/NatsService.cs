@@ -75,6 +75,8 @@ namespace User_Service.Messaging
                     string jsonString = Encoding.UTF8.GetString(args.Message.Data);
                     NatsMessage message = JsonConvert.DeserializeObject<NatsMessage>(jsonString);
 
+                    Console.WriteLine("Message received: " + message.target);
+
                     if (message == null) return;
 
                     handler(message);
