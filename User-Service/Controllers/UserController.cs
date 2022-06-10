@@ -1,3 +1,7 @@
+using FirebaseAdmin;
+using FirebaseAdmin.Auth;
+using Google.Api.Gax;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using User_Service.Contexts;
@@ -12,22 +16,24 @@ namespace User_Service.Controllers
     {
         private readonly IMessageService _messageService;
         private readonly DataContext _context;
+        private readonly FirebaseAuth auth;
 
         public UserController(IMessageService messageService, DataContext context)
         {
             _messageService = messageService;
             _context = context;
+            auth = FirebaseAuth.DefaultInstance;
         }
 
-        [HttpGet("getAll")]
+        [HttpGet("getAll"), Authorize]
         public IActionResult getAll()
         {
             IEnumerable<User> users = _context.Users;
             return Ok(users);
         }
 
-        [HttpGet("get/{id}")]
-        public  IActionResult Get(long id)
+        [HttpGet("get/{id}"), Authorize]
+        public  IActionResult Get(string id)
         {
             User user = _context.Users.FirstOrDefault(x=> x.Id == id);
 
@@ -39,20 +45,48 @@ namespace User_Service.Controllers
             return Ok(user);
         }
 
-        [HttpPost("create")]
-        public IActionResult Create(User user)
+        [HttpPost("register")]
+        public async Task<IActionResult> Create(InputUser inputUser)
         {
             if (ModelState.IsValid)
             {
-                _context.Users.Add(user);
-                _context.SaveChanges();
+                try
+                {
+                    UserRecord createdUser = await auth.CreateUserAsync(new UserRecordArgs()
+                    {
+                        Email = inputUser.Email,
+                        EmailVerified = false,
+                        Password = inputUser.Password,
+                        DisplayName = inputUser.DisplayName,
+                        Disabled = false,
+                    });
 
-                BroadcastUpdate(new List<User> { user });
+                    User newUser = new User(createdUser.Uid, inputUser.Email, inputUser.DisplayName);
 
-                return Ok(user);
+                    using(_context)
+                    {
+                        _context.Users.Add(newUser);
+                        _context.SaveChanges();
+                    }
+
+                    BroadcastUpdate(new List<User> { newUser });
+                    return Ok(newUser);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return Problem(ex.Message);
+                }
             }
 
             return Problem("Invalid user");
+        }
+
+        [HttpPost("login")]
+        public IActionResult Login(string email, string pasword)
+        {
+            
+            return Ok();
         }
 
         private void BroadcastUpdate(List<User> updatedUsers)

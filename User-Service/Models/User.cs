@@ -4,16 +4,17 @@ namespace User_Service.Models
 {
     public class User
     {
-        public long Id { get; set; }
-        public string Username { get; set; }
-        public string AvatarUrl { get; set; }
-        
+        public string Id { get; set; }
+        public string Email { get; set; }
+        public string DisplayName { get; set; }
+
         public User() { }
 
-        public User(string username, string avatarUrl)
+        public User(string uid, string email, string displayName)
         {
-            Username = username;
-            AvatarUrl = avatarUrl;
+            Id = uid;
+            Email = email;
+            DisplayName = displayName;
         }
     }
 }
