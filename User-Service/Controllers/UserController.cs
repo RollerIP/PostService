@@ -1,4 +1,6 @@
+using FirebaseAdmin;
 using FirebaseAdmin.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using User_Service.Contexts;
@@ -14,6 +16,7 @@ namespace User_Service.Controllers
         private readonly IMessageService _messageService;
         private readonly DataContext _context;
         private readonly FirebaseAuth auth;
+
         public UserController(IMessageService messageService, DataContext context)
         {
             _messageService = messageService;
@@ -21,14 +24,14 @@ namespace User_Service.Controllers
             auth = FirebaseAuth.DefaultInstance;
         }
 
-        [HttpGet("getAll")]
+        [HttpGet("getAll"), Authorize]
         public IActionResult getAll()
         {
             IEnumerable<User> users = _context.Users;
             return Ok(users);
         }
 
-        [HttpGet("get/{id}")]
+        [HttpGet("get/{id}"), Authorize]
         public  IActionResult Get(long id)
         {
             User user = _context.Users.FirstOrDefault(x=> x.Id == id);
@@ -41,7 +44,7 @@ namespace User_Service.Controllers
             return Ok(user);
         }
 
-        [HttpPost("create")]
+        [HttpPost("register")]
         public async Task<IActionResult> Create(InputUser inputUser)
         {
             if (ModelState.IsValid)
@@ -75,6 +78,13 @@ namespace User_Service.Controllers
             }
 
             return Problem("Invalid user");
+        }
+
+        [HttpPost("login")]
+        public IActionResult Login(string email, string pasword)
+        {
+            
+            return Ok();
         }
 
         private void BroadcastUpdate(List<User> updatedUsers)
