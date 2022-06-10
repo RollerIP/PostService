@@ -6,6 +6,7 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using User_Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ FirebaseApp.Create(new AppOptions()
 
 // Add services to the container.
 builder.Services.AddSingleton<IMessageService, NatsService>();
+builder.Services.AddSingleton<FirebaseService>();
 builder.Services.AddDbContext<DataContext>(opt =>
     opt.UseInMemoryDatabase("UsersList"));
 builder.Services.AddControllers();
@@ -75,6 +77,7 @@ if (app.Environment.IsDevelopment())
 
 // Load needed services
 app.Services.GetServices<IMessageService>();
+app.Services.GetService<FirebaseService>();
 
 app.UseHttpsRedirection();
 

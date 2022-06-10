@@ -1,5 +1,6 @@
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
+using Google.Api.Gax;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -32,7 +33,7 @@ namespace User_Service.Controllers
         }
 
         [HttpGet("get/{id}"), Authorize]
-        public  IActionResult Get(long id)
+        public  IActionResult Get(string id)
         {
             User user = _context.Users.FirstOrDefault(x=> x.Id == id);
 
@@ -59,22 +60,23 @@ namespace User_Service.Controllers
                         DisplayName = inputUser.DisplayName,
                         Disabled = false,
                     });
+
+                    User newUser = new User(createdUser.Uid, inputUser.Email, inputUser.DisplayName);
+
+                    using(_context)
+                    {
+                        _context.Users.Add(newUser);
+                        _context.SaveChanges();
+                    }
+
+                    BroadcastUpdate(new List<User> { newUser });
+                    return Ok(newUser);
                 }
                 catch(Exception ex)
                 {
                     Console.WriteLine(ex.Message);
                     return Problem(ex.Message);
                 }
-
-                User newUser = new User(inputUser.Email, inputUser.DisplayName);
-
-                _context.Users.Add(newUser);
-                _context.SaveChanges();
-
-                BroadcastUpdate(new List<User> { newUser });
-
-                return Ok(newUser);
-
             }
 
             return Problem("Invalid user");
