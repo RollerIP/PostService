@@ -7,7 +7,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["User-Service/User-Service.csproj", "User-Service/"]
+COPY ["User-Service.csproj", "User-Service/"]
 RUN dotnet restore "User-Service/User-Service.csproj"
 COPY . .
 WORKDIR "/src/User-Service"
